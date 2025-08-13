@@ -14,7 +14,7 @@ pub enum Col {
     Gold,
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Direction {
     North,
     South,
@@ -142,6 +142,17 @@ impl From<Col> for Color {
             Col::Darkblue => Color::from_rgba(0, 0, 139, 255),
             Col::Pink => Color::from_rgba(255, 105, 180, 255),
             Col::Gold => Color::from_rgba(255, 215, 0, 255),
+        }
+    }
+}
+
+impl Direction {
+    pub fn opposite(&self) -> Direction {
+        match self {
+            Direction::North => Direction::South,
+            Direction::South => Direction::North,
+            Direction::East => Direction::West,
+            Direction::West => Direction::East,
         }
     }
 }

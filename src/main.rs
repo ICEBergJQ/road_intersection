@@ -3,13 +3,17 @@ use ::rand::Rng;
 use ::rand::thread_rng;
 use app::*;
 use macroquad::prelude::*;
+use std::collections::HashMap;
 
 const WINDOW_WIDTH: f32 = 800.0;
 const WINDOW_HEIGHT: f32 = 600.0;
 const LANE_WIDTH: f32 = 50.0;
+const STOP_DISTANCE: f32 = 20.0;
+
 
 #[macroquad::main("Traffic Simulation")]
 async fn main() {
+    let mut lane_counts: HashMap<Direction, usize> = HashMap::new();
     let mut cars: Vec<Car> = Vec::new();
     let colors: Vec<(Col, Turn)> = vec![
         (Col::Darkblue, Turn::Left),
@@ -66,6 +70,7 @@ async fn main() {
                     color,
                     turn,
                 ));
+                *lane_counts.get_mut(&Direction::North).unwrap() += 1;
             }
         }
 
@@ -84,6 +89,7 @@ async fn main() {
                     color,
                     turn,
                 ));
+                *lane_counts.get_mut(&Direction::South).unwrap() += 1;
             }
         }
 
@@ -102,6 +108,7 @@ async fn main() {
                     color,
                     turn,
                 ));
+                *lane_counts.get_mut(&Direction::East).unwrap() += 1;
             }
         }
 
@@ -120,6 +127,7 @@ async fn main() {
                     color,
                     turn,
                 ));
+                *lane_counts.get_mut(&Direction::East).unwrap() += 1;
             }
         }
 
@@ -198,8 +206,8 @@ async fn main() {
             match car.direction {
                 Direction::North => match car.turn {
                     Turn::Left => {
-                        if (car.x == WINDOW_WIDTH / 2.0
-                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH)
+                        if car.x == WINDOW_WIDTH / 2.0
+                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
                         {
                             car.update_direction();
                         }
