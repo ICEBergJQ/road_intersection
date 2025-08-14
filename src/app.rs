@@ -14,7 +14,7 @@ pub enum Col {
     Gold,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Direction {
     North,
     South,
@@ -28,6 +28,7 @@ pub struct Car {
     pub y: f32,
     pub dx: f32,
     pub dy: f32,
+    pub check_move: bool,
     pub color: Color,
     pub turn: Turn,
 }
@@ -46,6 +47,7 @@ impl Car {
         y: f32,
         dx: f32,
         dy: f32,
+        check_move: bool,
         color: Color,
         turn: Turn,
     ) -> Self {
@@ -55,12 +57,14 @@ impl Car {
             y,
             dx,
             dy,
+            check_move,
             color,
             turn,
         }
     }
 
     pub fn update(&mut self) {
+        self.check_move = true;
         self.x += self.dx;
         self.y += self.dy;
     }
@@ -142,17 +146,6 @@ impl From<Col> for Color {
             Col::Darkblue => Color::from_rgba(0, 0, 139, 255),
             Col::Pink => Color::from_rgba(255, 105, 180, 255),
             Col::Gold => Color::from_rgba(255, 215, 0, 255),
-        }
-    }
-}
-
-impl Direction {
-    pub fn opposite(&self) -> Direction {
-        match self {
-            Direction::North => Direction::South,
-            Direction::South => Direction::North,
-            Direction::East => Direction::West,
-            Direction::West => Direction::East,
         }
     }
 }

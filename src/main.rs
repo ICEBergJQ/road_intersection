@@ -1,6 +1,5 @@
 mod app;
-use ::rand::Rng;
-use ::rand::thread_rng;
+use ::rand::{rng, Rng};
 use app::*;
 use macroquad::prelude::*;
 
@@ -45,6 +44,7 @@ async fn main() {
     ];
 
     let mut last_change = get_time();
+    let mut all_red_start: Option<f64> = None;
 
     loop {
         if is_key_pressed(KeyCode::Escape) {
@@ -52,8 +52,8 @@ async fn main() {
         }
 
         if is_key_pressed(KeyCode::Up) {
-            let mut rng = thread_rng();
-            let (col, turn) = colors[rng.gen_range(0..colors.len())];
+            let mut rng = rng();
+            let (col, turn) = colors[rng.random_range(0..colors.len())];
             let color = Color::from(col);
             let start_x = WINDOW_WIDTH / 2.0;
             if can_spawn(&cars, start_x, 50.0, 0.0, -2.0) {
@@ -63,6 +63,7 @@ async fn main() {
                     WINDOW_HEIGHT + LANE_WIDTH,
                     0.0,
                     -2.0,
+                    true,
                     color,
                     turn,
                 ));
@@ -70,8 +71,8 @@ async fn main() {
         }
 
         if is_key_pressed(KeyCode::Down) {
-            let mut rng = thread_rng();
-            let (col, turn) = colors[rng.gen_range(0..colors.len())];
+            let mut rng = rng();
+            let (col, turn) = colors[rng.random_range(0..colors.len())];
             let color = Color::from(col);
             let start_x = WINDOW_WIDTH / 2.0 - LANE_WIDTH;
             if can_spawn(&cars, start_x, 50.0, 0.0, 2.0) {
@@ -81,6 +82,7 @@ async fn main() {
                     -LANE_WIDTH,
                     0.0,
                     2.0,
+                    true,
                     color,
                     turn,
                 ));
@@ -88,8 +90,8 @@ async fn main() {
         }
 
         if is_key_pressed(KeyCode::Right) {
-            let mut rng = thread_rng();
-            let (col, turn) = colors[rng.gen_range(0..colors.len())];
+            let mut rng = rng();
+            let (col, turn) = colors[rng.random_range(0..colors.len())];
             let color = Color::from(col);
             let start_y = WINDOW_HEIGHT / 2.0;
             if can_spawn(&cars, start_y, 50.0, 2.0, 0.0) {
@@ -99,6 +101,7 @@ async fn main() {
                     start_y,
                     2.0,
                     0.0,
+                    true,
                     color,
                     turn,
                 ));
@@ -106,8 +109,8 @@ async fn main() {
         }
 
         if is_key_pressed(KeyCode::Left) {
-            let mut rng = thread_rng();
-            let (col, turn) = colors[rng.gen_range(0..colors.len())];
+            let mut rng = rng();
+            let (col, turn) = colors[rng.random_range(0..colors.len())];
             let color = Color::from(col);
             let start_y = WINDOW_HEIGHT / 2.0 - LANE_WIDTH;
             if can_spawn(&cars, start_y, 50.0, -2.0, 0.0) {
@@ -117,6 +120,7 @@ async fn main() {
                     start_y,
                     -2.0,
                     0.0,
+                    true,
                     color,
                     turn,
                 ));
@@ -138,49 +142,59 @@ async fn main() {
         draw_lane_markings();
 
         let now = get_time();
-        if now - last_change >= 6.0 {
-            for light in &mut lights {
-                light.green = false;
+        
+        if now - last_change >= 4.0 {
+            if all_red_start.is_none() {
+                for light in &mut lights {
+                    light.green = false;
+                }
+                all_red_start = Some(now);
+            } else if now - all_red_start.unwrap() >= 1.0 {
+                let random_index = rand::gen_range(0, lights.len());
+                lights[random_index].update();
+                
+                last_change = now;
+                all_red_start = None;
             }
-            let random_index = rand::gen_range(0, lights.len());
-            lights[random_index].update();
-
-            last_change = now;
         }
 
-        for car in &mut cars {
+        for i in 0..cars.len() {
             let mut car_can_move = true;
 
             for light in &lights {
-                match (light.direction, car.direction) {
+                match (light.direction, cars[i].direction) {
                     (Direction::South, Direction::North) => {
-                        if car.y == light.y
+                        if cars[i].y == light.y
                         {
                             if !light.green {
+                                cars[i].check_move = false;
                                 car_can_move = false;
                             }
                         }
                     }
                     (Direction::North, Direction::South) => {
-                        if car.y == light.y
+                        if cars[i].y == light.y
                         {
                             if !light.green {
+                                cars[i].check_move = false;
                                 car_can_move = false;
                             }
                         }
                     }
                     (Direction::East, Direction::West) => {
-                        if car.x == light.x
+                        if cars[i].x == light.x
                         {
                             if !light.green {
+                                cars[i].check_move = false;
                                 car_can_move = false;
                             }
                         }
                     }
                     (Direction::West, Direction::East) => {
-                        if car.x + 10.0 == light.x
+                        if cars[i].x + 10.0 == light.x
                         {
                             if !light.green {
+                                cars[i].check_move = false;
                                 car_can_move = false;
                             }
                         }
@@ -189,8 +203,50 @@ async fn main() {
                 }
             }
 
+            for j in 0..cars.len() {
+                if i == j {
+                    continue;
+                }
+                let front_car = &cars[j];
+
+                match cars[i].direction {
+                    Direction::North => {
+                        if front_car.direction == Direction::North
+                            && front_car.y < cars[i].y
+                            && cars[i].y - front_car.y < 100.0
+                        {
+                            car_can_move = false;
+                        }
+                    }
+                    Direction::South => {
+                        if front_car.direction == Direction::South
+                            && front_car.y > cars[i].y
+                            && front_car.y - cars[i].y < 100.0
+                        {
+                            car_can_move = false;
+                        }
+                    }
+                    Direction::East => {
+                        if front_car.direction == Direction::East
+                            && front_car.x > cars[i].x
+                            && front_car.x - cars[i].x < 100.0
+                        {
+                            car_can_move = false;
+                        }
+                    }
+                    Direction::West => {
+                        if front_car.direction == Direction::West
+                            && front_car.x < cars[i].x
+                            && cars[i].x - front_car.x < 100.0
+                        {
+                            car_can_move = false;
+                        }
+                    }
+                }
+            }
+
             if car_can_move {
-                car.update();
+                cars[i].update();
             }
         }
 
@@ -198,14 +254,13 @@ async fn main() {
             match car.direction {
                 Direction::North => match car.turn {
                     Turn::Left => {
-                        if car.x == WINDOW_WIDTH / 2.0
-                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
+                        if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
                         {
                             car.update_direction();
                         }
                     }
                     Turn::Right => {
-                        if (car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0) {
+                        if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 {
                             car.update_direction();
                         }
                     }
@@ -215,15 +270,15 @@ async fn main() {
                 },
                 Direction::South => match car.turn {
                     Turn::Left => {
-                        if (car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
-                            && car.y == WINDOW_HEIGHT / 2.0)
+                        if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
+                            && car.y == WINDOW_HEIGHT / 2.0
                         {
                             car.update_direction();
                         }
                     }
                     Turn::Right => {
-                        if (car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
-                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH)
+                        if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
+                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
                         {
                             car.update_direction();
                         }
@@ -250,8 +305,8 @@ async fn main() {
                 },
                 Direction::West => match car.turn {
                     Turn::Left => {
-                        if (car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
-                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH)
+                        if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
+                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
                         {
                             car.update_direction();
                         }
@@ -267,9 +322,6 @@ async fn main() {
                     }
                 },
             };
-            // if can_move {
-            //     car.update();
-            // }
             car.draw();
         }
 
