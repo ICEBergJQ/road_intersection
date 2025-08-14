@@ -7,6 +7,8 @@ pub enum Turn {
     Front,
 }
 
+
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Col {
     Darkblue,

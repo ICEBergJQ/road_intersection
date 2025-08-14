@@ -127,7 +127,39 @@ async fn main() {
             }
         }
 
-        if is_key_pressed(KeyCode::R) {}
+        if is_key_pressed(KeyCode::R) {
+            let mut rng = rng();
+            let direction = match rng.random_range(0..4) {
+                0 => Direction::North,
+                1 => Direction::South,
+                2 => Direction::East,
+                _ => Direction::West,
+            };
+
+            let (start_x, start_y, velocity_x, velocity_y) = match direction {
+                Direction::North => (WINDOW_WIDTH / 2.0, WINDOW_HEIGHT + LANE_WIDTH, 0.0, -2.0),
+                Direction::South => (WINDOW_WIDTH / 2.0 - LANE_WIDTH, -LANE_WIDTH, 0.0, 2.0),
+                Direction::East => (-LANE_WIDTH, WINDOW_HEIGHT / 2.0, 2.0, 0.0),
+                Direction::West => (WINDOW_WIDTH + LANE_WIDTH, WINDOW_HEIGHT / 2.0 - LANE_WIDTH, -2.0, 0.0),
+            };
+
+            let (col, turn) = colors[rng.random_range(0..colors.len())];
+            let color = Color::from(col);
+
+            if can_spawn(&cars, start_y, 50.0, velocity_x, velocity_y) {
+                cars.push(Car::new(
+                    direction,
+                    start_x,
+                    start_y,
+                    velocity_x,
+                    velocity_y,
+                    true,
+                    color,
+                    turn,
+                ));
+            }
+
+        }
 
         cars.retain(|car| {
             car.x > -LANE_WIDTH * 2.0
