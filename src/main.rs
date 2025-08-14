@@ -1,5 +1,5 @@
 mod app;
-use ::rand::{rng, Rng};
+use ::rand::{Rng, rng};
 use app::*;
 use macroquad::prelude::*;
 
@@ -45,6 +45,10 @@ async fn main() {
 
     let mut last_change = get_time();
     let mut all_red_start: Option<f64> = None;
+    let mut north_count = 0;
+    let mut south_count = 0;
+    let mut east_count = 0;
+    let mut west_count = 0;
 
     loop {
         if is_key_pressed(KeyCode::Escape) {
@@ -56,13 +60,14 @@ async fn main() {
             let (col, turn) = colors[rng.random_range(0..colors.len())];
             let color = Color::from(col);
             let start_x = WINDOW_WIDTH / 2.0;
-            if can_spawn(&cars, start_x, 50.0, 0.0, -2.0) {
+            if can_spawn(&cars, start_x, 50.0, 0.0, -SPEED) {
+                north_count += 1;
                 cars.push(Car::new(
                     Direction::North,
                     start_x,
                     WINDOW_HEIGHT + LANE_WIDTH,
                     0.0,
-                    -2.0,
+                    -SPEED,
                     true,
                     color,
                     turn,
@@ -75,13 +80,14 @@ async fn main() {
             let (col, turn) = colors[rng.random_range(0..colors.len())];
             let color = Color::from(col);
             let start_x = WINDOW_WIDTH / 2.0 - LANE_WIDTH;
-            if can_spawn(&cars, start_x, 50.0, 0.0, 2.0) {
+            if can_spawn(&cars, start_x, 50.0, 0.0, SPEED) {
+                south_count += 1;
                 cars.push(Car::new(
                     Direction::South,
                     start_x,
                     -LANE_WIDTH,
                     0.0,
-                    2.0,
+                    SPEED,
                     true,
                     color,
                     turn,
@@ -94,12 +100,13 @@ async fn main() {
             let (col, turn) = colors[rng.random_range(0..colors.len())];
             let color = Color::from(col);
             let start_y = WINDOW_HEIGHT / 2.0;
-            if can_spawn(&cars, start_y, 50.0, 2.0, 0.0) {
+            if can_spawn(&cars, start_y, 50.0, SPEED, 0.0) {
+                east_count += 1;
                 cars.push(Car::new(
                     Direction::East,
                     -LANE_WIDTH,
                     start_y,
-                    2.0,
+                    SPEED,
                     0.0,
                     true,
                     color,
@@ -113,12 +120,13 @@ async fn main() {
             let (col, turn) = colors[rng.random_range(0..colors.len())];
             let color = Color::from(col);
             let start_y = WINDOW_HEIGHT / 2.0 - LANE_WIDTH;
-            if can_spawn(&cars, start_y, 50.0, -2.0, 0.0) {
+            if can_spawn(&cars, start_y, 50.0, -SPEED, 0.0) {
+                west_count += 1;
                 cars.push(Car::new(
                     Direction::West,
                     WINDOW_WIDTH + LANE_WIDTH,
                     start_y,
-                    -2.0,
+                    -SPEED,
                     0.0,
                     true,
                     color,
@@ -137,10 +145,15 @@ async fn main() {
             };
 
             let (start_x, start_y, velocity_x, velocity_y) = match direction {
-                Direction::North => (WINDOW_WIDTH / 2.0, WINDOW_HEIGHT + LANE_WIDTH, 0.0, -2.0),
-                Direction::South => (WINDOW_WIDTH / 2.0 - LANE_WIDTH, -LANE_WIDTH, 0.0, 2.0),
-                Direction::East => (-LANE_WIDTH, WINDOW_HEIGHT / 2.0, 2.0, 0.0),
-                Direction::West => (WINDOW_WIDTH + LANE_WIDTH, WINDOW_HEIGHT / 2.0 - LANE_WIDTH, -2.0, 0.0),
+                Direction::North => (WINDOW_WIDTH / 2.0, WINDOW_HEIGHT + LANE_WIDTH, 0.0, -SPEED),
+                Direction::South => (WINDOW_WIDTH / 2.0 - LANE_WIDTH, -LANE_WIDTH, 0.0, SPEED),
+                Direction::East => (-LANE_WIDTH, WINDOW_HEIGHT / 2.0, SPEED, 0.0),
+                Direction::West => (
+                    WINDOW_WIDTH + LANE_WIDTH,
+                    WINDOW_HEIGHT / 2.0 - LANE_WIDTH,
+                    -SPEED,
+                    0.0,
+                ),
             };
 
             let (col, turn) = colors[rng.random_range(0..colors.len())];
@@ -148,17 +161,9 @@ async fn main() {
 
             if can_spawn(&cars, start_y, 50.0, velocity_x, velocity_y) {
                 cars.push(Car::new(
-                    direction,
-                    start_x,
-                    start_y,
-                    velocity_x,
-                    velocity_y,
-                    true,
-                    color,
-                    turn,
+                    direction, start_x, start_y, velocity_x, velocity_y, true, color, turn,
                 ));
             }
-
         }
 
         cars.retain(|car| {
@@ -174,17 +179,43 @@ async fn main() {
         draw_lane_markings();
 
         let now = get_time();
-        
-        if now - last_change >= 4.0 {
+
+        if now - last_change >= 1.0 {
             if all_red_start.is_none() {
                 for light in &mut lights {
                     light.green = false;
                 }
                 all_red_start = Some(now);
-            } else if now - all_red_start.unwrap() >= 2.0 {
-                let random_index = rand::gen_range(0, lights.len());
-                lights[random_index].update();
-                
+            } else if now - all_red_start.unwrap() >= 0.5 {
+                // let random_index = rand::gen_range(0, lights.len());
+                // lights[random_index].update();
+                println!(
+                    "{}, {}, {}, {}",
+                    north_count, south_count, east_count, west_count
+                );
+                if north_count > south_count && north_count > east_count && north_count > west_count
+                {
+                    lights[1].update();
+                } else if south_count > north_count
+                    && south_count > east_count
+                    && south_count > west_count
+                {
+                    lights[0].update();
+                } else if east_count > north_count
+                    && east_count > south_count
+                    && east_count > west_count
+                {
+                    lights[3].update();
+                } else if west_count > north_count
+                    && west_count > south_count
+                    && west_count > east_count
+                {
+                    lights[2].update();
+                } else {
+                    let random_index = rand::gen_range(0, lights.len());
+                    lights[random_index].update();
+                }
+
                 last_change = now;
                 all_red_start = None;
             }
@@ -196,8 +227,7 @@ async fn main() {
             for light in &lights {
                 match (light.direction, cars[i].direction) {
                     (Direction::South, Direction::North) => {
-                        if cars[i].y == light.y
-                        {
+                        if cars[i].y == light.y {
                             if !light.green {
                                 cars[i].check_move = false;
                                 car_can_move = false;
@@ -205,8 +235,7 @@ async fn main() {
                         }
                     }
                     (Direction::North, Direction::South) => {
-                        if cars[i].y == light.y
-                        {
+                        if cars[i].y == light.y {
                             if !light.green {
                                 cars[i].check_move = false;
                                 car_can_move = false;
@@ -214,8 +243,7 @@ async fn main() {
                         }
                     }
                     (Direction::East, Direction::West) => {
-                        if cars[i].x == light.x
-                        {
+                        if cars[i].x == light.x {
                             if !light.green {
                                 cars[i].check_move = false;
                                 car_can_move = false;
@@ -223,8 +251,7 @@ async fn main() {
                         }
                     }
                     (Direction::West, Direction::East) => {
-                        if cars[i].x + 10.0 == light.x
-                        {
+                        if cars[i].x + 10.0 == light.x {
                             if !light.green {
                                 cars[i].check_move = false;
                                 car_can_move = false;
@@ -245,7 +272,8 @@ async fn main() {
                     Direction::North => {
                         if front_car.direction == Direction::North
                             && front_car.y < cars[i].y
-                            && cars[i].y - front_car.y < 100.0
+                            && cars[i].y - front_car.y < 90.0
+                            && front_car.y >= lights[1].y
                         {
                             car_can_move = false;
                         }
@@ -253,7 +281,8 @@ async fn main() {
                     Direction::South => {
                         if front_car.direction == Direction::South
                             && front_car.y > cars[i].y
-                            && front_car.y - cars[i].y < 100.0
+                            && front_car.y - cars[i].y < 90.0
+                            && front_car.y <= lights[0].y
                         {
                             car_can_move = false;
                         }
@@ -261,7 +290,8 @@ async fn main() {
                     Direction::East => {
                         if front_car.direction == Direction::East
                             && front_car.x > cars[i].x
-                            && front_car.x - cars[i].x < 100.0
+                            && front_car.x - cars[i].x < 90.0
+                            && front_car.x <= lights[3].x
                         {
                             car_can_move = false;
                         }
@@ -269,7 +299,8 @@ async fn main() {
                     Direction::West => {
                         if front_car.direction == Direction::West
                             && front_car.x < cars[i].x
-                            && cars[i].x - front_car.x < 100.0
+                            && cars[i].x - front_car.x < 90.0
+                            && front_car.x >= lights[2].x
                         {
                             car_can_move = false;
                         }
@@ -283,28 +314,35 @@ async fn main() {
         }
 
         for car in &mut cars {
+            let mut should_decrement = false;
+
             match car.direction {
                 Direction::North => match car.turn {
                     Turn::Left => {
                         if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
                         {
+                            should_decrement = true;
                             car.update_direction();
                         }
                     }
                     Turn::Right => {
                         if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 {
+                            should_decrement = true;
                             car.update_direction();
                         }
                     }
-                    _ => {
-                        car.update_direction();
+                    Turn::Front => {
+                        if car.y <= WINDOW_HEIGHT / 2.0 - LANE_WIDTH {
+                            should_decrement = true;
+                            car.update_direction();
+                        }
                     }
                 },
                 Direction::South => match car.turn {
                     Turn::Left => {
-                        if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
-                            && car.y == WINDOW_HEIGHT / 2.0
+                        if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH && car.y == WINDOW_HEIGHT / 2.0
                         {
+                            should_decrement = true;
                             car.update_direction();
                         }
                     }
@@ -312,27 +350,36 @@ async fn main() {
                         if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
                             && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
                         {
+                            should_decrement = true;
                             car.update_direction();
                         }
                     }
-                    _ => {
-                        car.update_direction();
+                    Turn::Front => {
+                        if car.y >= WINDOW_HEIGHT / 2.0 + LANE_WIDTH {
+                            should_decrement = true;
+                            car.update_direction();
+                        }
                     }
                 },
                 Direction::East => match car.turn {
                     Turn::Left => {
                         if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 {
+                            should_decrement = true;
                             car.update_direction();
                         }
                     }
                     Turn::Right => {
                         if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH && car.y == WINDOW_HEIGHT / 2.0
                         {
+                            should_decrement = true;
                             car.update_direction();
                         }
                     }
-                    _ => {
-                        car.update_direction();
+                    Turn::Front => {
+                        if car.x >= WINDOW_WIDTH / 2.0 + LANE_WIDTH {
+                            should_decrement = true;
+                            car.update_direction();
+                        }
                     }
                 },
                 Direction::West => match car.turn {
@@ -340,20 +387,51 @@ async fn main() {
                         if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
                             && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
                         {
+                            should_decrement = true;
                             car.update_direction();
                         }
                     }
                     Turn::Right => {
                         if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
                         {
+                            should_decrement = true;
                             car.update_direction();
                         }
                     }
-                    _ => {
-                        car.update_direction();
+                    Turn::Front => {
+                        if car.x <= WINDOW_WIDTH / 2.0 - LANE_WIDTH {
+                            should_decrement = true;
+                            car.update_direction();
+                        }
                     }
                 },
             };
+
+            if should_decrement {
+                match car.direction {
+                    Direction::North => {
+                        if north_count > 0 {
+                            north_count -= 1;
+                        }
+                    }
+                    Direction::South => {
+                        if south_count > 0 {
+                            south_count -= 1;
+                        }
+                    }
+                    Direction::East => {
+                        if east_count > 0 {
+                            east_count -= 1;
+                        }
+                    }
+                    Direction::West => {
+                        if west_count > 0 {
+                            west_count -= 1;
+                        }
+                    }
+                }
+            }
+
             car.draw();
         }
 

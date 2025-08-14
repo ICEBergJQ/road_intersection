@@ -1,5 +1,7 @@
 use macroquad::prelude::*;
 
+pub const SPEED:f32 = 5.0;
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Turn {
     Left,
@@ -75,38 +77,38 @@ impl Car {
         match self.turn {
             Turn::Left => match self.direction {
                 Direction::North => {
-                    self.dx = -2.0;
+                    self.dx = -SPEED;
                     self.dy = 0.0;
                 },
                 Direction::South => {
-                    self.dx = 2.0;
+                    self.dx = SPEED;
                     self.dy = 0.0;
                 },
                 Direction::East => {
                     self.dx = 0.0;
-                    self.dy = -2.0;
+                    self.dy = -SPEED;
                 },
                 Direction::West => {
                     self.dx = 0.0;
-                    self.dy = 2.0;
+                    self.dy = SPEED;
                 },
             },
             Turn::Right => match self.direction {
                 Direction::North => {
-                    self.dx = 2.0;
+                    self.dx = SPEED;
                     self.dy = 0.0;
                 },
                 Direction::South => {
-                    self.dx = -2.0;
+                    self.dx = -SPEED;
                     self.dy = 0.0;
                 },
                 Direction::East => {
                     self.dx = 0.0;
-                    self.dy = 2.0;
+                    self.dy = SPEED;
                 },
                 Direction::West => {
                     self.dx = 0.0;
-                    self.dy = -2.0;
+                    self.dy = -SPEED;
                 },
             },
             _ => {}
