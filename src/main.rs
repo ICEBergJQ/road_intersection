@@ -21,7 +21,7 @@ async fn main() {
             Direction::North,
             WINDOW_WIDTH / 2.0 - 90.0,
             WINDOW_HEIGHT / 2.0 - 100.0,
-            true,
+            false,
         ),
         TrafficLight::new(
             Direction::South,
@@ -149,7 +149,7 @@ async fn main() {
                     light.green = false;
                 }
                 all_red_start = Some(now);
-            } else if now - all_red_start.unwrap() >= 1.0 {
+            } else if now - all_red_start.unwrap() >= 2.0 {
                 let random_index = rand::gen_range(0, lights.len());
                 lights[random_index].update();
                 
