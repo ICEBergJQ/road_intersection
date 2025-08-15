@@ -193,20 +193,20 @@ async fn main() {
                     "{}, {}, {}, {}",
                     north_count, south_count, east_count, west_count
                 );
-                if north_count > south_count && north_count > east_count && north_count > west_count
+                if north_count >= south_count && north_count > east_count && north_count > west_count
                 {
                     lights[1].update();
-                } else if south_count > north_count
+                } else if south_count >= north_count
                     && south_count > east_count
                     && south_count > west_count
                 {
                     lights[0].update();
-                } else if east_count > north_count
+                } else if east_count >= north_count
                     && east_count > south_count
                     && east_count > west_count
                 {
                     lights[3].update();
-                } else if west_count > north_count
+                } else if west_count >= north_count
                     && west_count > south_count
                     && west_count > east_count
                 {
