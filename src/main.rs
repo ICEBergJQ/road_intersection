@@ -319,20 +319,20 @@ async fn main() {
             match car.direction {
                 Direction::North => match car.turn {
                     Turn::Left => {
-                        if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
+                        if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH && car.check == false
                         {
                             should_decrement = true;
                             car.update_direction();
                         }
                     }
                     Turn::Right => {
-                        if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 {
+                        if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 && car.check == false{
                             should_decrement = true;
                             car.update_direction();
                         }
                     }
                     Turn::Front => {
-                        if car.y <= WINDOW_HEIGHT / 2.0 - LANE_WIDTH {
+                        if car.y <= WINDOW_HEIGHT / 2.0 - LANE_WIDTH && car.check == false{
                             should_decrement = true;
                             car.update_direction();
                         }
@@ -340,7 +340,7 @@ async fn main() {
                 },
                 Direction::South => match car.turn {
                     Turn::Left => {
-                        if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH && car.y == WINDOW_HEIGHT / 2.0
+                        if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH && car.y == WINDOW_HEIGHT / 2.0 && car.check == false
                         {
                             should_decrement = true;
                             car.update_direction();
@@ -348,14 +348,14 @@ async fn main() {
                     }
                     Turn::Right => {
                         if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
-                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
+                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH && car.check == false
                         {
                             should_decrement = true;
                             car.update_direction();
                         }
                     }
                     Turn::Front => {
-                        if car.y >= WINDOW_HEIGHT / 2.0 + LANE_WIDTH {
+                        if car.y >= WINDOW_HEIGHT / 2.0 + LANE_WIDTH && car.check == false{
                             should_decrement = true;
                             car.update_direction();
                         }
@@ -363,20 +363,20 @@ async fn main() {
                 },
                 Direction::East => match car.turn {
                     Turn::Left => {
-                        if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 {
+                        if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 && car.check == false{
                             should_decrement = true;
                             car.update_direction();
                         }
                     }
                     Turn::Right => {
-                        if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH && car.y == WINDOW_HEIGHT / 2.0
+                        if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH && car.y == WINDOW_HEIGHT / 2.0 && car.check == false
                         {
                             should_decrement = true;
                             car.update_direction();
                         }
                     }
                     Turn::Front => {
-                        if car.x >= WINDOW_WIDTH / 2.0 + LANE_WIDTH {
+                        if car.x >= WINDOW_WIDTH / 2.0 + LANE_WIDTH && car.check == false{
                             should_decrement = true;
                             car.update_direction();
                         }
@@ -385,21 +385,21 @@ async fn main() {
                 Direction::West => match car.turn {
                     Turn::Left => {
                         if car.x == WINDOW_WIDTH / 2.0 - LANE_WIDTH
-                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
+                            && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH && car.check == false
                         {
                             should_decrement = true;
                             car.update_direction();
                         }
                     }
                     Turn::Right => {
-                        if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH
+                        if car.x == WINDOW_WIDTH / 2.0 && car.y == WINDOW_HEIGHT / 2.0 - LANE_WIDTH && car.check == false
                         {
                             should_decrement = true;
                             car.update_direction();
                         }
                     }
                     Turn::Front => {
-                        if car.x <= WINDOW_WIDTH / 2.0 - LANE_WIDTH {
+                        if car.x <= WINDOW_WIDTH / 2.0 - LANE_WIDTH && car.check == false{
                             should_decrement = true;
                             car.update_direction();
                         }
@@ -411,21 +411,25 @@ async fn main() {
                 match car.direction {
                     Direction::North => {
                         if north_count > 0 {
+                            car.check = true;
                             north_count -= 1;
                         }
                     }
                     Direction::South => {
                         if south_count > 0 {
+                            car.check = true;
                             south_count -= 1;
                         }
                     }
                     Direction::East => {
                         if east_count > 0 {
+                            car.check = true;
                             east_count -= 1;
                         }
                     }
                     Direction::West => {
                         if west_count > 0 {
+                            car.check = true;
                             west_count -= 1;
                         }
                     }

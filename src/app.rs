@@ -33,6 +33,7 @@ pub struct Car {
     pub dx: f32,
     pub dy: f32,
     pub check_move: bool,
+    pub check: bool,
     pub color: Color,
     pub turn: Turn,
 }
@@ -62,6 +63,7 @@ impl Car {
             dx,
             dy,
             check_move,
+            check: false,
             color,
             turn,
         }
